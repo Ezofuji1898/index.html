@@ -511,25 +511,75 @@ function snapPlacedItem(el){
 
 function makePlacedDraggable(el){
   let dragging=false,dx=0,dy=0;
-  el.addEventListener('pointerdown',e=>{
-    if(e.target.classList && e.target.classList.contains('resize-handle')) return;
-    dragging=true;selectItem(el);el.style.zIndex=++zCounter;
-    el.setPointerCapture(e.pointerId);
+
+  function startDrag(clientX,clientY){
+    dragging=true;
+    selectItem(el);
+    el.style.zIndex=++zCounter;
     const r=el.getBoundingClientRect();
-    dx=e.clientX-r.left;dy=e.clientY-r.top;
-    e.preventDefault();
-  });
-  el.addEventListener('pointermove',e=>{
+    dx=clientX-r.left;
+    dy=clientY-r.top;
+  }
+
+  function moveDrag(clientX,clientY){
     if(!dragging)return;
-    const p=getBoardCoords(e.clientX,e.clientY);
+    const p=getBoardCoords(clientX,clientY);
     let x=p.x-dx*(board.offsetWidth/board.getBoundingClientRect().width);
     let y=p.y-dy*(board.offsetHeight/board.getBoundingClientRect().height);
     x=Math.max(0,Math.min(x,board.clientWidth-el.offsetWidth));
     y=Math.max(0,Math.min(y,board.clientHeight-el.offsetHeight));
-    el.style.left=x+'px';el.style.top=y+'px';
+    el.style.left=x+'px';
+    el.style.top=y+'px';
+  }
+
+  function endDrag(){
+    if(!dragging)return;
+    dragging=false;
+    snapPlacedItem(el);
+  }
+
+  el.addEventListener('pointerdown',e=>{
+    if(e.target.classList && e.target.classList.contains('resize-handle')) return;
+    startDrag(e.clientX,e.clientY);
+    try{el.setPointerCapture(e.pointerId);}catch(_){}
+    e.preventDefault();
   });
-  el.addEventListener('pointerup',()=>{dragging=false;snapPlacedItem(el);});
-  el.addEventListener('pointercancel',()=>{dragging=false;snapPlacedItem(el);});
+
+  el.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    moveDrag(e.clientX,e.clientY);
+    e.preventDefault();
+  });
+
+  el.addEventListener('pointerup',e=>{
+    try{el.releasePointerCapture(e.pointerId);}catch(_){}
+    endDrag();
+  });
+
+  el.addEventListener('pointercancel',endDrag);
+
+  // iPad / iPhone Safari fallback
+  el.addEventListener('touchstart',e=>{
+    if(e.target.classList && e.target.classList.contains('resize-handle')) return;
+    if(!e.touches || !e.touches.length) return;
+    const t=e.touches[0];
+    startDrag(t.clientX,t.clientY);
+    e.preventDefault();
+  },{passive:false});
+
+  el.addEventListener('touchmove',e=>{
+    if(!dragging || !e.touches || !e.touches.length) return;
+    const t=e.touches[0];
+    moveDrag(t.clientX,t.clientY);
+    e.preventDefault();
+  },{passive:false});
+
+  el.addEventListener('touchend',e=>{
+    endDrag();
+    e.preventDefault();
+  },{passive:false});
+
+  el.addEventListener('touchcancel',endDrag,{passive:false});
 }
 
 function placeToken(token,clientX,clientY){
