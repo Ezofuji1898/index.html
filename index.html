@@ -354,6 +354,51 @@ select,input{
   margin-top:12px;
 }
 .crop-controls button{flex:1 1 120px}
+
+.image-slot{
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.slot-image-wrap{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:28px 8px 52px;
+}
+.slot-image-wrap img{
+  display:block;
+  width:70%;
+  height:auto;
+  max-width:95%;
+  max-height:78%;
+  object-fit:contain;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+.slot-image-controls{
+  position:absolute;
+  left:50%;
+  bottom:6px;
+  transform:translateX(-50%);
+  display:flex;
+  gap:6px;
+  z-index:5;
+  background:rgba(255,255,255,.96);
+  padding:5px;
+  border-radius:10px;
+  border:1px solid var(--line);
+}
+.slot-image-controls button{
+  min-height:40px;
+  padding:5px 10px;
+  font-size:15px;
+  border-radius:8px;
+}
+
 </style>
 </head>
 <body>
@@ -421,7 +466,7 @@ select,input{
       ">
       <span id="imageName" class="image-name"></span>
     </div>
-    <div class="help">iPadなどに保存した画像を選ぶと、下部の画像枠に追加されます。画像は2枚まで配置できます。画像をタップすると、矢印ボタンと「大きく」「小さく」「けす」が表示されます。矢印ボタンで画像の位置を調整できます。画像を2回タップすると切り取り画面が開きます。すべて端末内だけで動きます。</div>
+    <div class="help">画像を選ぶと、画像1・画像2の枠へ順番に直接入ります。画像はドラッグしません。「大きく」「小さく」「けす」で調整できます。</div>
   </div>
 
   <div class="actions">
@@ -644,7 +689,12 @@ function placeToken(token,clientX,clientY){
     const readingMap={'月':'げつようび','火':'かようび','水':'すいようび','木':'もくようび','金':'きんようび','土':'どようび','日':'にちようび'};
     el.innerHTML='<span class="ruby-label"><span class="furigana">'+readingMap[first]+'</span><span class="kanji">'+first+'曜日</span></span>';
   }else if(token.dataset.type==='month'){
-    el.innerHTML='<span class="ruby-label"><span class="furigana">つき</span><span class="kanji">'+token.dataset.value+'</span></span>';
+    const monthReading={
+      '1月':'いちがつ','2月':'にがつ','3月':'さんがつ','4月':'しがつ',
+      '5月':'ごがつ','6月':'ろくがつ','7月':'しちがつ','8月':'はちがつ',
+      '9月':'くがつ','10月':'じゅうがつ','11月':'じゅういちがつ','12月':'じゅうにがつ'
+    };
+    el.innerHTML='<span class="ruby-label"><span class="furigana">'+monthReading[token.dataset.value]+'</span><span class="kanji">'+token.dataset.value+'</span></span>';
   }else{
     el.textContent=token.dataset.value;
   }
@@ -701,7 +751,12 @@ function addToken(parent,label,type){
     if(label.startsWith('土')) token.classList.add('weekday-sat');
     if(label.startsWith('日')) token.classList.add('weekday-sun');
   }else if(type==='month'){
-    token.innerHTML='<span class="ruby-label"><span class="furigana">つき</span><span class="kanji">'+label+'</span></span>';
+    const monthReading={
+      '1月':'いちがつ','2月':'にがつ','3月':'さんがつ','4月':'しがつ',
+      '5月':'ごがつ','6月':'ろくがつ','7月':'しちがつ','8月':'はちがつ',
+      '9月':'くがつ','10月':'じゅうがつ','11月':'じゅういちがつ','12月':'じゅうにがつ'
+    };
+    token.innerHTML='<span class="ruby-label"><span class="furigana">'+monthReading[label]+'</span><span class="kanji">'+label+'</span></span>';
   }else{
     token.textContent=label;
   }
@@ -732,6 +787,8 @@ buildTokens();
 document.getElementById('deleteSelected').addEventListener('click',()=>{if(selectedItem)returnToTray(selectedItem);});
 document.getElementById('resetBtn').addEventListener('click',()=>{
   document.querySelectorAll('.item').forEach(x=>x.remove());
+  document.querySelectorAll('.slot-image-wrap').forEach(x=>x.remove());
+  document.getElementById('imageName').textContent='';
   selectedItem=null;buildTokens();
   monthBox.innerHTML='<span class="ruby-label"><span class="furigana">つき</span><span class="kanji">月</span></span>';
   document.getElementById('nameDisplay').innerHTML='<span class="ruby-label"><span class="furigana">なまえ</span><span class="kanji">名前</span></span>';
@@ -1036,60 +1093,66 @@ document.getElementById('imageInput').addEventListener('change',e=>{
   if(!file) return;
   document.getElementById('imageName').textContent=file.name;
 
+  const slot1=document.getElementById('imageSlot1');
+  const slot2=document.getElementById('imageSlot2');
+
+  let targetSlot=null;
+  if(!slot1.querySelector('.slot-image-wrap')){
+    targetSlot=slot1;
+  }else if(!slot2.querySelector('.slot-image-wrap')){
+    targetSlot=slot2;
+  }else{
+    alert('画像は2枚まで入れられます。どちらかを「けす」してから選んでください。');
+    e.target.value='';
+    return;
+  }
+
   const reader=new FileReader();
   reader.onload=ev=>{
-    const el=document.createElement('div');
-    el.className='item image';
-    el.dataset.type='image';
-    el.dataset.value=file.name;
-    const existingImages=[...document.querySelectorAll('.item.image')];
-    if(existingImages.length>=2){
-      alert('画像は2枚まで配置できます。');
-      return;
-    }
-    const targetSlot=document.getElementById(existingImages.length===0?'imageSlot1':'imageSlot2');
-    const sr=targetSlot.getBoundingClientRect();
-    const br=board.getBoundingClientRect();
-    const sx=board.offsetWidth/br.width, sy=board.offsetHeight/br.height;
-    el.style.left=((sr.left-br.left)*sx + (sr.width*sx)/2 - 90)+'px';
-    el.style.top=((sr.top-br.top)*sy + (sr.height*sy)/2 - 70)+'px';
-    el.style.zIndex=++zCounter;
+    const wrap=document.createElement('div');
+    wrap.className='slot-image-wrap';
 
     const img=document.createElement('img');
     img.src=ev.target.result;
     img.alt='えらんだ画像';
-    el.appendChild(img);
+    wrap.appendChild(img);
 
-    const panel=document.createElement('div');
-    panel.className='image-move-panel';
-    panel.innerHTML=
-      '<button type="button" data-act="left">←</button>'+
-      '<button type="button" data-act="right">→</button>'+
-      '<button type="button" data-act="up">↑</button>'+
-      '<button type="button" data-act="down">↓</button>'+
+    const controls=document.createElement('div');
+    controls.className='slot-image-controls';
+    controls.innerHTML=
       '<button type="button" data-act="bigger">大きく</button>'+
       '<button type="button" data-act="smaller">小さく</button>'+
       '<button type="button" data-act="delete">けす</button>';
-    el.appendChild(panel);
+    wrap.appendChild(controls);
+    targetSlot.appendChild(wrap);
 
-    const handle=document.createElement('div');
-    handle.className='resize-handle';
-    handle.style.display='none';
-    el.appendChild(handle);
+    let pct=70;
 
-    board.appendChild(el);
-    el.addEventListener('click',e=>{
-      selectItem(el);
-      e.stopPropagation();
+    controls.querySelector('[data-act="bigger"]').addEventListener('click',ev2=>{
+      ev2.preventDefault();
+      ev2.stopPropagation();
+      pct=Math.min(95,pct+10);
+      img.style.width=pct+'%';
     });
-    makeImageButtonControls(el,img,panel);
-    enableCropOpen(el,img);
-    selectItem(el);
+
+    controls.querySelector('[data-act="smaller"]').addEventListener('click',ev2=>{
+      ev2.preventDefault();
+      ev2.stopPropagation();
+      pct=Math.max(30,pct-10);
+      img.style.width=pct+'%';
+    });
+
+    controls.querySelector('[data-act="delete"]').addEventListener('click',ev2=>{
+      ev2.preventDefault();
+      ev2.stopPropagation();
+      wrap.remove();
+      document.getElementById('imageName').textContent='';
+    });
   };
+
   reader.readAsDataURL(file);
   e.target.value='';
 });
-
 
 async function elementToOfflinePng(element){
   // Inline all current form/select values so the exported image matches what is visible.
@@ -1098,6 +1161,7 @@ async function elementToOfflinePng(element){
   // Remove temporary selection / resize UI from the exported image.
   clone.querySelectorAll('.selected').forEach(el=>el.classList.remove('selected'));
   clone.querySelectorAll('.resize-handle').forEach(el=>el.remove());
+  clone.querySelectorAll('.slot-image-controls').forEach(el=>el.remove());
 
   // Copy computed styles into the cloned tree so export works with no external CSS.
   const originalNodes=[element,...element.querySelectorAll('*')];
