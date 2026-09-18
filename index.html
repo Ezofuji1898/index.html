@@ -689,12 +689,8 @@ function placeToken(token,clientX,clientY){
     const readingMap={'月':'げつようび','火':'かようび','水':'すいようび','木':'もくようび','金':'きんようび','土':'どようび','日':'にちようび'};
     el.innerHTML='<span class="ruby-label"><span class="furigana">'+readingMap[first]+'</span><span class="kanji">'+first+'曜日</span></span>';
   }else if(token.dataset.type==='month'){
-    const monthReading={
-      '1月':'いちがつ','2月':'にがつ','3月':'さんがつ','4月':'しがつ',
-      '5月':'ごがつ','6月':'ろくがつ','7月':'しちがつ','8月':'はちがつ',
-      '9月':'くがつ','10月':'じゅうがつ','11月':'じゅういちがつ','12月':'じゅうにがつ'
-    };
-    el.innerHTML='<span class="ruby-label"><span class="furigana">'+monthReading[token.dataset.value]+'</span><span class="kanji">'+token.dataset.value+'</span></span>';
+    const num=token.dataset.value.replace('月','');
+    el.innerHTML=num+'<span class="ruby-label"><span class="furigana">がつ</span><span class="kanji">月</span></span>';
   }else{
     el.textContent=token.dataset.value;
   }
@@ -751,12 +747,8 @@ function addToken(parent,label,type){
     if(label.startsWith('土')) token.classList.add('weekday-sat');
     if(label.startsWith('日')) token.classList.add('weekday-sun');
   }else if(type==='month'){
-    const monthReading={
-      '1月':'いちがつ','2月':'にがつ','3月':'さんがつ','4月':'しがつ',
-      '5月':'ごがつ','6月':'ろくがつ','7月':'しちがつ','8月':'はちがつ',
-      '9月':'くがつ','10月':'じゅうがつ','11月':'じゅういちがつ','12月':'じゅうにがつ'
-    };
-    token.innerHTML='<span class="ruby-label"><span class="furigana">'+monthReading[label]+'</span><span class="kanji">'+label+'</span></span>';
+    const num=label.replace('月','');
+    token.innerHTML=num+'<span class="ruby-label"><span class="furigana">がつ</span><span class="kanji">月</span></span>';
   }else{
     token.textContent=label;
   }
