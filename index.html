@@ -356,10 +356,16 @@ select,input{
   <div class="tray">
     <div class="tray-title">④ すきな画像</div>
     <div class="image-controls">
-      <label style="border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;">
-        画像をえらぶ
-        <input id="imageInput" type="file" accept="image/*" style="display:none">
-      </label>
+      <input id="imageInput" type="file" accept="image/*" style="
+        display:block;
+        max-width:100%;
+        border:2px solid var(--line);
+        background:#fff;
+        border-radius:12px;
+        padding:10px 12px;
+        font-weight:700;
+        cursor:pointer;
+      ">
       <span id="imageName" class="image-name"></span>
     </div>
     <div class="help">iPadなどに保存した画像を選ぶと、下部の画像枠に追加されます。画像は2枚まで配置できます。画像を選ぶと右下に青い丸が出るので、そこを指で動かすと縦横比を保ったまま枠いっぱいまで拡大・縮小できます。画像を2回タップすると切り取り画面が開きます。すべて端末内だけで動きます。</div>
