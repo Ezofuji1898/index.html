@@ -267,7 +267,34 @@ select,input{
   z-index:30;
 }
 .item.image.selected .image-drag-handle{
+  display:none;
+}
+
+.image-move-panel{
+  position:absolute;
+  left:50%;
+  top:-62px;
+  transform:translateX(-50%);
+  display:none;
+  gap:6px;
+  flex-wrap:wrap;
+  justify-content:center;
+  width:300px;
+  z-index:40;
+  background:#fff;
+  border:2px solid var(--line);
+  border-radius:12px;
+  padding:6px;
+}
+.item.image.selected .image-move-panel{
   display:flex;
+}
+.image-move-panel button{
+  min-width:48px;
+  min-height:44px;
+  padding:6px 10px;
+  font-size:18px;
+  border-radius:10px;
 }
 
 .crop-modal{
@@ -394,7 +421,7 @@ select,input{
       ">
       <span id="imageName" class="image-name"></span>
     </div>
-    <div class="help">iPadなどに保存した画像を選ぶと、下部の画像枠に追加されます。画像は2枚まで配置できます。画像をタップすると上に「うごかす」が出ます。「うごかす」を指で動かすと画像を移動できます。右下の青い丸では縦横比を保ったまま拡大・縮小できます。画像を2回タップすると切り取り画面が開きます。すべて端末内だけで動きます。</div>
+    <div class="help">iPadなどに保存した画像を選ぶと、下部の画像枠に追加されます。画像は2枚まで配置できます。画像をタップすると、矢印ボタンと「大きく」「小さく」「けす」が表示されます。矢印ボタンで画像の位置を調整できます。画像を2回タップすると切り取り画面が開きます。すべて端末内だけで動きます。</div>
   </div>
 
   <div class="actions">
@@ -769,91 +796,49 @@ observer.observe(board,{childList:true,subtree:false});
 
 
 
-function makeImageDraggableIOS(el,img,dragHandle){
-  let dragging=false;
-  let startX=0, startY=0;
-  let startLeft=0, startTop=0;
+function makeImageButtonControls(el,img,panel){
+  const step=14;
 
-  img.style.pointerEvents='none';
-  img.style.webkitUserDrag='none';
-  img.style.userSelect='none';
-  dragHandle.style.touchAction='none';
-
-  function begin(clientX,clientY){
-    dragging=true;
-    selectItem(el);
-    el.style.zIndex=++zCounter;
-    startX=clientX;
-    startY=clientY;
-    startLeft=parseFloat(el.style.left)||0;
-    startTop=parseFloat(el.style.top)||0;
-  }
-
-  function move(clientX,clientY){
-    if(!dragging)return;
-    const br=board.getBoundingClientRect();
-    const sx=board.offsetWidth/br.width;
-    const sy=board.offsetHeight/br.height;
-
-    let x=startLeft+(clientX-startX)*sx;
-    let y=startTop +(clientY-startY)*sy;
-
-    x=Math.max(0,Math.min(x,board.clientWidth-el.offsetWidth));
-    y=Math.max(0,Math.min(y,board.clientHeight-el.offsetHeight));
-
+  function moveBy(dx,dy){
+    const left=(parseFloat(el.style.left)||0)+dx;
+    const top=(parseFloat(el.style.top)||0)+dy;
+    const x=Math.max(0,Math.min(left,board.clientWidth-el.offsetWidth));
+    const y=Math.max(0,Math.min(top,board.clientHeight-el.offsetHeight));
     el.style.left=x+'px';
     el.style.top=y+'px';
   }
 
-  function end(){
-    dragging=false;
+  function resizeBy(factor){
+    const current=img.getBoundingClientRect();
+    let newW=current.width*factor;
+    newW=Math.max(70,Math.min(newW,360));
+    img.style.width=newW+'px';
+    img.style.height='auto';
   }
 
-  dragHandle.addEventListener('pointerdown',e=>{
-    begin(e.clientX,e.clientY);
-    try{dragHandle.setPointerCapture(e.pointerId);}catch(_){}
-    e.preventDefault();
-    e.stopPropagation();
+  panel.querySelector('[data-act="left"]').addEventListener('click',e=>{
+    e.stopPropagation(); moveBy(-step,0);
   });
-
-  dragHandle.addEventListener('pointermove',e=>{
-    if(!dragging)return;
-    move(e.clientX,e.clientY);
-    e.preventDefault();
-    e.stopPropagation();
+  panel.querySelector('[data-act="right"]').addEventListener('click',e=>{
+    e.stopPropagation(); moveBy(step,0);
   });
-
-  dragHandle.addEventListener('pointerup',e=>{
-    try{dragHandle.releasePointerCapture(e.pointerId);}catch(_){}
-    end();
-    e.preventDefault();
-    e.stopPropagation();
+  panel.querySelector('[data-act="up"]').addEventListener('click',e=>{
+    e.stopPropagation(); moveBy(0,-step);
   });
-
-  dragHandle.addEventListener('pointercancel',end);
-
-  // iPad Safari fallback
-  dragHandle.addEventListener('touchstart',e=>{
-    if(!e.touches || !e.touches.length)return;
-    const t=e.touches[0];
-    begin(t.clientX,t.clientY);
-    e.preventDefault();
+  panel.querySelector('[data-act="down"]').addEventListener('click',e=>{
+    e.stopPropagation(); moveBy(0,step);
+  });
+  panel.querySelector('[data-act="bigger"]').addEventListener('click',e=>{
+    e.stopPropagation(); resizeBy(1.12);
+  });
+  panel.querySelector('[data-act="smaller"]').addEventListener('click',e=>{
+    e.stopPropagation(); resizeBy(0.88);
+  });
+  panel.querySelector('[data-act="delete"]').addEventListener('click',e=>{
     e.stopPropagation();
-  },{passive:false});
-
-  dragHandle.addEventListener('touchmove',e=>{
-    if(!dragging || !e.touches || !e.touches.length)return;
-    const t=e.touches[0];
-    move(t.clientX,t.clientY);
-    e.preventDefault();
-    e.stopPropagation();
-  },{passive:false});
-
-  dragHandle.addEventListener('touchend',e=>{
-    end();
-    e.preventDefault();
-    e.stopPropagation();
-  },{passive:false});
+    el.remove();
+    selectedItem=null;
+  });
 }
 
 function makeImageResizable(el,img,handle){
@@ -1075,18 +1060,29 @@ document.getElementById('imageInput').addEventListener('change',e=>{
     img.alt='えらんだ画像';
     el.appendChild(img);
 
-    const dragHandle=document.createElement('div');
-    dragHandle.className='image-drag-handle';
-    dragHandle.textContent='うごかす';
-    el.appendChild(dragHandle);
+    const panel=document.createElement('div');
+    panel.className='image-move-panel';
+    panel.innerHTML=
+      '<button type="button" data-act="left">←</button>'+
+      '<button type="button" data-act="right">→</button>'+
+      '<button type="button" data-act="up">↑</button>'+
+      '<button type="button" data-act="down">↓</button>'+
+      '<button type="button" data-act="bigger">大きく</button>'+
+      '<button type="button" data-act="smaller">小さく</button>'+
+      '<button type="button" data-act="delete">けす</button>';
+    el.appendChild(panel);
 
     const handle=document.createElement('div');
     handle.className='resize-handle';
+    handle.style.display='none';
     el.appendChild(handle);
 
     board.appendChild(el);
-    makeImageDraggableIOS(el,img,dragHandle);
-    makeImageResizable(el,img,handle);
+    el.addEventListener('click',e=>{
+      selectItem(el);
+      e.stopPropagation();
+    });
+    makeImageButtonControls(el,img,panel);
     enableCropOpen(el,img);
     selectItem(el);
   };
