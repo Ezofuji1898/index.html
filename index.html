@@ -93,12 +93,12 @@ select,input{
 .item{
   position:absolute;
   display:flex;align-items:center;justify-content:center;
-  background:rgba(255,255,255,.96);
+  background:transparent;
   font-weight:800;cursor:grab;touch-action:none;z-index:5;
 }
 .item.selected{outline:3px solid rgba(59,130,246,.45)}
 .item.month{font-size:38px;min-width:100px;min-height:50px}
-.item.weekday{font-size:20px;min-width:104px;min-height:44px}
+.item.weekday{font-size:20px;min-width:90px;min-height:44px}
 .item.date{font-size:26px;min-width:34px;min-height:34px;justify-content:flex-start}
 .tray-title{font-size:18px;font-weight:800;margin-bottom:8px}
 .tokenrow{display:flex;gap:8px;flex-wrap:wrap;min-height:58px}
@@ -680,7 +680,7 @@ document.getElementById('nameCancelBtn').addEventListener('click',()=>kanaModal.
 const observer=new MutationObserver(()=>{
   const m=[...document.querySelectorAll('.item.month')][0];
   monthBox.innerHTML=m
-    ? '<span class="ruby-label"><span class="furigana">つき</span><span class="kanji">月</span></span>&nbsp;'+m.dataset.value.replace('月','')
+    ? ''
     : '<span class="ruby-label"><span class="furigana">つき</span><span class="kanji">月</span></span>';
 });
 observer.observe(board,{childList:true,subtree:false});
