@@ -743,6 +743,96 @@ observer.observe(board,{childList:true,subtree:false});
 
 
 
+function makeImageDraggableIOS(el,img){
+  let dragging=false;
+  let startClientX=0, startClientY=0;
+  let startLeft=0, startTop=0;
+
+  // iOSの画像保存・標準ドラッグを抑止
+  img.style.pointerEvents='none';
+  img.style.webkitUserDrag='none';
+  img.style.userSelect='none';
+  el.style.touchAction='none';
+  el.style.webkitUserSelect='none';
+
+  function begin(x,y){
+    dragging=true;
+    selectItem(el);
+    el.style.zIndex=++zCounter;
+    startClientX=x;
+    startClientY=y;
+    startLeft=parseFloat(el.style.left)||0;
+    startTop=parseFloat(el.style.top)||0;
+  }
+
+  function move(x,y){
+    if(!dragging) return;
+    const br=board.getBoundingClientRect();
+    const sx=board.offsetWidth/br.width;
+    const sy=board.offsetHeight/br.height;
+
+    let left=startLeft+(x-startClientX)*sx;
+    let top=startTop+(y-startClientY)*sy;
+
+    left=Math.max(0,Math.min(left,board.clientWidth-el.offsetWidth));
+    top=Math.max(0,Math.min(top,board.clientHeight-el.offsetHeight));
+
+    el.style.left=left+'px';
+    el.style.top=top+'px';
+  }
+
+  function end(){
+    dragging=false;
+    // 画像は自動的に枠中央へ戻さず、その位置に残す
+  }
+
+  el.addEventListener('touchstart',e=>{
+    if(e.target.classList && e.target.classList.contains('resize-handle')) return;
+    if(!e.touches || e.touches.length!==1) return;
+    const t=e.touches[0];
+    begin(t.clientX,t.clientY);
+    e.preventDefault();
+    e.stopPropagation();
+  },{passive:false});
+
+  el.addEventListener('touchmove',e=>{
+    if(!dragging || !e.touches || !e.touches.length) return;
+    const t=e.touches[0];
+    move(t.clientX,t.clientY);
+    e.preventDefault();
+    e.stopPropagation();
+  },{passive:false});
+
+  el.addEventListener('touchend',e=>{
+    end();
+    e.preventDefault();
+    e.stopPropagation();
+  },{passive:false});
+
+  el.addEventListener('touchcancel',end,{passive:false});
+
+  // マウスでも動かせるようにしておく
+  let mouseDragging=false;
+  el.addEventListener('mousedown',e=>{
+    if(e.target.classList && e.target.classList.contains('resize-handle')) return;
+    mouseDragging=true;
+    begin(e.clientX,e.clientY);
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove',e=>{
+    if(mouseDragging) move(e.clientX,e.clientY);
+  });
+
+  window.addEventListener('mouseup',()=>{
+    if(mouseDragging){
+      mouseDragging=false;
+      end();
+    }
+  });
+}
+
+
 function makeImageResizable(el,img,handle){
   let resizing=false;
   let startX=0, startY=0, startW=0, startH=0, aspect=1;
@@ -967,7 +1057,7 @@ document.getElementById('imageInput').addEventListener('change',e=>{
     el.appendChild(handle);
 
     board.appendChild(el);
-    makePlacedDraggable(el);
+    makeImageDraggableIOS(el,img);
     makeImageResizable(el,img,handle);
     enableCropOpen(el,img);
     selectItem(el);
