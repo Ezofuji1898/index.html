@@ -244,6 +244,32 @@ select,input{
   display:block;
 }
 
+.image-drag-handle{
+  position:absolute;
+  left:50%;
+  top:-38px;
+  transform:translateX(-50%);
+  min-width:110px;
+  height:34px;
+  padding:4px 14px;
+  border-radius:12px;
+  border:2px solid var(--accent);
+  background:#fff;
+  color:#222;
+  font-size:16px;
+  font-weight:800;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  z-index:30;
+}
+.item.image.selected .image-drag-handle{
+  display:flex;
+}
+
 .crop-modal{
   position:fixed;
   inset:0;
@@ -368,7 +394,7 @@ select,input{
       ">
       <span id="imageName" class="image-name"></span>
     </div>
-    <div class="help">iPadなどに保存した画像を選ぶと、下部の画像枠に追加されます。画像は2枚まで配置できます。画像を選ぶと右下に青い丸が出るので、そこを指で動かすと縦横比を保ったまま枠いっぱいまで拡大・縮小できます。画像を2回タップすると切り取り画面が開きます。すべて端末内だけで動きます。</div>
+    <div class="help">iPadなどに保存した画像を選ぶと、下部の画像枠に追加されます。画像は2枚まで配置できます。画像をタップすると上に「うごかす」が出ます。「うごかす」を指で動かすと画像を移動できます。右下の青い丸では縦横比を保ったまま拡大・縮小できます。画像を2回タップすると切り取り画面が開きます。すべて端末内だけで動きます。</div>
   </div>
 
   <div class="actions">
@@ -743,95 +769,92 @@ observer.observe(board,{childList:true,subtree:false});
 
 
 
-function makeImageDraggableIOS(el,img){
+function makeImageDraggableIOS(el,img,dragHandle){
   let dragging=false;
-  let startClientX=0, startClientY=0;
+  let startX=0, startY=0;
   let startLeft=0, startTop=0;
 
-  // iOSの画像保存・標準ドラッグを抑止
   img.style.pointerEvents='none';
   img.style.webkitUserDrag='none';
   img.style.userSelect='none';
-  el.style.touchAction='none';
-  el.style.webkitUserSelect='none';
+  dragHandle.style.touchAction='none';
 
-  function begin(x,y){
+  function begin(clientX,clientY){
     dragging=true;
     selectItem(el);
     el.style.zIndex=++zCounter;
-    startClientX=x;
-    startClientY=y;
+    startX=clientX;
+    startY=clientY;
     startLeft=parseFloat(el.style.left)||0;
     startTop=parseFloat(el.style.top)||0;
   }
 
-  function move(x,y){
-    if(!dragging) return;
+  function move(clientX,clientY){
+    if(!dragging)return;
     const br=board.getBoundingClientRect();
     const sx=board.offsetWidth/br.width;
     const sy=board.offsetHeight/br.height;
 
-    let left=startLeft+(x-startClientX)*sx;
-    let top=startTop+(y-startClientY)*sy;
+    let x=startLeft+(clientX-startX)*sx;
+    let y=startTop +(clientY-startY)*sy;
 
-    left=Math.max(0,Math.min(left,board.clientWidth-el.offsetWidth));
-    top=Math.max(0,Math.min(top,board.clientHeight-el.offsetHeight));
+    x=Math.max(0,Math.min(x,board.clientWidth-el.offsetWidth));
+    y=Math.max(0,Math.min(y,board.clientHeight-el.offsetHeight));
 
-    el.style.left=left+'px';
-    el.style.top=top+'px';
+    el.style.left=x+'px';
+    el.style.top=y+'px';
   }
 
   function end(){
     dragging=false;
-    // 画像は自動的に枠中央へ戻さず、その位置に残す
   }
 
-  el.addEventListener('touchstart',e=>{
-    if(e.target.classList && e.target.classList.contains('resize-handle')) return;
-    if(!e.touches || e.touches.length!==1) return;
+  dragHandle.addEventListener('pointerdown',e=>{
+    begin(e.clientX,e.clientY);
+    try{dragHandle.setPointerCapture(e.pointerId);}catch(_){}
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  dragHandle.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    move(e.clientX,e.clientY);
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  dragHandle.addEventListener('pointerup',e=>{
+    try{dragHandle.releasePointerCapture(e.pointerId);}catch(_){}
+    end();
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  dragHandle.addEventListener('pointercancel',end);
+
+  // iPad Safari fallback
+  dragHandle.addEventListener('touchstart',e=>{
+    if(!e.touches || !e.touches.length)return;
     const t=e.touches[0];
     begin(t.clientX,t.clientY);
     e.preventDefault();
     e.stopPropagation();
   },{passive:false});
 
-  el.addEventListener('touchmove',e=>{
-    if(!dragging || !e.touches || !e.touches.length) return;
+  dragHandle.addEventListener('touchmove',e=>{
+    if(!dragging || !e.touches || !e.touches.length)return;
     const t=e.touches[0];
     move(t.clientX,t.clientY);
     e.preventDefault();
     e.stopPropagation();
   },{passive:false});
 
-  el.addEventListener('touchend',e=>{
+  dragHandle.addEventListener('touchend',e=>{
     end();
     e.preventDefault();
     e.stopPropagation();
   },{passive:false});
-
-  el.addEventListener('touchcancel',end,{passive:false});
-
-  // マウスでも動かせるようにしておく
-  let mouseDragging=false;
-  el.addEventListener('mousedown',e=>{
-    if(e.target.classList && e.target.classList.contains('resize-handle')) return;
-    mouseDragging=true;
-    begin(e.clientX,e.clientY);
-    e.preventDefault();
-  });
-
-  window.addEventListener('mousemove',e=>{
-    if(mouseDragging) move(e.clientX,e.clientY);
-  });
-
-  window.addEventListener('mouseup',()=>{
-    if(mouseDragging){
-      mouseDragging=false;
-      end();
-    }
-  });
 }
-
 
 function makeImageResizable(el,img,handle){
   let resizing=false;
@@ -1052,12 +1075,17 @@ document.getElementById('imageInput').addEventListener('change',e=>{
     img.alt='えらんだ画像';
     el.appendChild(img);
 
+    const dragHandle=document.createElement('div');
+    dragHandle.className='image-drag-handle';
+    dragHandle.textContent='うごかす';
+    el.appendChild(dragHandle);
+
     const handle=document.createElement('div');
     handle.className='resize-handle';
     el.appendChild(handle);
 
     board.appendChild(el);
-    makeImageDraggableIOS(el,img);
+    makeImageDraggableIOS(el,img,dragHandle);
     makeImageResizable(el,img,handle);
     enableCropOpen(el,img);
     selectItem(el);
