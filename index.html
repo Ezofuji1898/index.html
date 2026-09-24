@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>カレンダーを つくろう</title>
+<title>よていカレンダーを つくろう</title>
 <style>
 :root{--bg:#f4f6fa;--card:#fff;--line:#cfd5df;--text:#222;--muted:#667085;--accent:#3b82f6;--danger:#c93b3b;--sat:#1f5fd1;--sun:#d43f3f;--themeMain:#222;--themeSoft:#fff;--themeText:#222;--imageGuide:#9aa3b2}
 *{box-sizing:border-box}
@@ -33,6 +33,7 @@ button.tool{padding:10px 12px;min-height:48px}
 .cell{position:relative;border-right:1px solid #111;border-bottom:1px solid #111;overflow:hidden}.cell:nth-child(7n+1){border-left:1px solid #111}.cell:nth-child(-n+7){border-top:1px solid #111}.weekcell{background:#f8f9fb}
 .weekday-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;cursor:pointer}.weekday-label.sat{color:var(--sat)}.weekday-label.sun{color:var(--sun)}
 .date-label{position:absolute;left:7px;top:5px;font-size:26px;font-weight:800;line-height:1}.date-label.anchor{outline:3px solid rgba(59,130,246,.32);border-radius:6px;padding:2px;cursor:pointer}.date-label.sat{color:var(--sat)}.date-label.sun{color:var(--sun)}
+.schedule-list{position:absolute;left:5px;right:5px;top:35px;bottom:4px;display:flex;flex-direction:column;gap:3px;overflow:hidden;pointer-events:none}.schedule-tag{min-height:17px;border-radius:6px;padding:2px 4px;font-size:11px;font-weight:800;line-height:1.15;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid rgba(0,0,0,.18)}.schedule-pickup{background:#fff4cf}.schedule-bus{background:#e8f1ff}.schedule-dayservice{background:#eaf8ea}.schedule-rehab{background:#f4eaff}.schedule-hospital{background:#ffe9e9}
 .image-frame{position:absolute;left:28px;right:28px;top:830px;height:255px;border:0;border-radius:0;background:#fff}.image-frame-body{position:absolute;inset:10px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.image-frame-body.layout-left-large{grid-template-columns:1.45fr .85fr}.image-frame-body.layout-right-large{grid-template-columns:.85fr 1.45fr}.image-slot{position:relative;border-radius:10px;background:#fff;overflow:hidden;cursor:pointer}.image-slot.empty{border:1.5px dashed var(--imageGuide);background:#fff}.image-slot:not(.empty){border:0;background:transparent}.image-slot.selected{outline:4px solid rgba(59,130,246,.35)}.image-slot-label{display:none}.image-slot.empty .image-slot-label{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;color:#8a94a3;font-size:20px;font-weight:800;pointer-events:none}.image-slot img{position:absolute;left:50%;top:50%;width:auto;height:auto;max-width:none;max-height:none;transform-origin:center center;pointer-events:none;user-select:none}
 .placing-hint{position:absolute;left:12px;right:12px;top:12px;display:none;padding:11px 14px;border:2px solid var(--accent);border-radius:12px;background:#eef5ff;font-weight:800;z-index:20}
 .placing-hint.show{display:block}.target-ready{background:#eef5ff!important;box-shadow:inset 0 0 0 3px rgba(59,130,246,.25)}
@@ -47,12 +48,13 @@ button.tool{padding:10px 12px;min-height:48px}
 <body>
 <div class="app">
   <div class="topcard" id="topCard">
-    <h1>カレンダーを つくろう</h1>
+    <h1>よていカレンダーを つくろう</h1>
     <div class="toolbar">
       <button id="yearBtn" class="tool">ねん</button>
       <button id="monthBtn" class="tool">つき</button>
       <button id="weekdayBtn" class="tool">ようびの はじまり</button>
       <button id="dateBtn" class="tool">「1」をおく</button>
+      <button id="scheduleBtn" class="tool">よてい</button>
       <button id="nameBtn" class="tool">なまえ</button>
       <button id="img1Btn" class="tool">がぞう1</button>
       <button id="img2Btn" class="tool">がぞう2</button>
@@ -131,6 +133,8 @@ const weekdayReading={月:'げつ',火:'か',水:'すい',木:'もく',金:'き�
 const yearRange=[...Array(17)].map((_,i)=>2020+i);
 let currentYear=null, monthValue=null, weekdayState=null, dateAnchor=null, placing=null, kanaBuffer='';
 const imageStates=[{src:null,zoom:100,x:0,y:0},{src:null,zoom:100,x:0,y:0}];
+let scheduleState={};
+const scheduleDefs={pickup:{label:'おむかえ',className:'schedule-pickup'},bus:{label:'バス',className:'schedule-bus'},dayservice:{label:'デイサービス',className:'schedule-dayservice'},rehab:{label:'リハビリ',className:'schedule-rehab'},hospital:{label:'つういん',className:'schedule-hospital'}};
 let currentImageSlot=0;
 let themeKey='none', imageLayout='equal';
 const themeOptions={none:{label:'いろなし',main:'#222',soft:'#fff',text:'#222'},blue:{label:'あお',main:'#4f83e1',soft:'#eef4ff',text:'#2f4f86'},green:{label:'みどり',main:'#4fa36a',soft:'#effaf2',text:'#2d6a3f'},orange:{label:'オレンジ',main:'#e08b3e',soft:'#fff4e9',text:'#8a5420'},purple:{label:'むらさき',main:'#8b6bd6',soft:'#f4efff',text:'#5d4498'}};
@@ -204,9 +208,16 @@ function renderDates(){
       const idx=(weekdayState.anchorIndex + (col-weekdayState.anchorCol)+7*100)%7;
       const name=weekdayNames[idx]; weekdayClass=classForWeekday(name);
     }
+    const cell=grid.children[cellIndex];
     const el=document.createElement('div'); el.className='date-label '+weekdayClass+(d===1?' anchor':''); el.textContent=String(d);
     if(d===1) el.addEventListener('click',(ev)=>{ev.stopPropagation(); startDatePlacement();});
-    grid.children[cellIndex].appendChild(el);
+    cell.appendChild(el);
+    const items=scheduleState[d]||[];
+    if(items.length){
+      const list=document.createElement('div'); list.className='schedule-list';
+      items.forEach(key=>{const def=scheduleDefs[key]; if(!def)return; const tag=document.createElement('div'); tag.className='schedule-tag '+def.className; tag.textContent=def.label; list.appendChild(tag);});
+      cell.appendChild(list);
+    }
   }
 }
 function fitBoard(){
@@ -257,6 +268,40 @@ function openYearChooser(){
 function openMonthChooser(){
   openChoiceModal({title:'つきを えらぼう',help:'えらぶと、上の「月」のわくに はいります。えらびなおすと上書きされます。',items:[...Array(12)].map((_,i)=>({label:(i+1),onClick:()=>{monthValue=i+1;setMonthDisplay();renderDates();closeChoiceModal();}})),actions:[{label:'つきを けす',className:'danger',onClick:()=>{monthValue=null;setMonthDisplay();renderDates();closeChoiceModal();}},{label:'やめる',onClick:closeChoiceModal}]});
 }
+function startSchedulePlacement(key){
+  placing={type:'schedule',value:key};
+  const def=scheduleDefs[key];
+  placingHint.textContent='「'+def.label+'」を いれたい ひを タップしよう';
+  placingHint.classList.add('show');
+  clearTargetHighlights();
+  for(let i=7;i<49;i++) grid.children[i].classList.add('target-ready');
+  closeChoiceModal();
+}
+function startScheduleClear(){
+  placing={type:'schedule-clear'};
+  placingHint.textContent='よていを けしたい ひを タップしよう';
+  placingHint.classList.add('show');
+  clearTargetHighlights();
+  for(let i=7;i<49;i++) grid.children[i].classList.add('target-ready');
+  closeChoiceModal();
+}
+function openScheduleChooser(){
+  openChoiceModal({
+    title:'よていを えらぼう',
+    help:'よていをえらんでから、カレンダーの ひにちをタップします。同じ日に いくつか入れられます。',
+    items:[
+      {label:'おむかえ',onClick:()=>startSchedulePlacement('pickup')},
+      {label:'バス',onClick:()=>startSchedulePlacement('bus')},
+      {label:'デイサービス',onClick:()=>startSchedulePlacement('dayservice')},
+      {label:'リハビリ',onClick:()=>startSchedulePlacement('rehab')},
+      {label:'つういん',onClick:()=>startSchedulePlacement('hospital')}
+    ],
+    actions:[
+      {label:'そのひの よていを けす',className:'danger',onClick:startScheduleClear},
+      {label:'やめる',onClick:closeChoiceModal}
+    ]
+  });
+}
 function openThemeChooser(){
   openChoiceModal({
     title:'いろを えらぼう',
@@ -285,6 +330,20 @@ board.addEventListener('click',(e)=>{
   if(placing.type==='date'){
     const pos=cellFromPoint(e,false); if(pos==null) return;
     dateAnchor=pos; renderDates(); cancelPlacing();
+  }else if(placing.type==='schedule' || placing.type==='schedule-clear'){
+    if(currentYear==null || monthValue==null || dateAnchor==null) return;
+    const pos=cellFromPoint(e,false); if(pos==null) return;
+    const day=pos-dateAnchor+1;
+    const days=monthDays(currentYear,monthValue);
+    if(day<1 || day>days) return;
+    if(placing.type==='schedule-clear'){
+      delete scheduleState[day];
+    }else{
+      const arr=scheduleState[day]||[];
+      if(!arr.includes(placing.value)) arr.push(placing.value);
+      scheduleState[day]=arr;
+    }
+    renderDates(); cancelPlacing();
   }
 });
 
@@ -318,7 +377,7 @@ function replaceLast(map){if(!kanaBuffer)return;const a=[...kanaBuffer],last=a.p
 function openNameModal(){ kanaPreview.textContent=kanaBuffer; kanaModal.classList.add('show'); }
 document.getElementById('dakutenBtn').onclick=()=>replaceLast(dakutenMap); document.getElementById('handakutenBtn').onclick=()=>replaceLast(handakuMap); document.getElementById('smallBtn').onclick=()=>replaceLast(smallMap); document.getElementById('spaceBtn').onclick=()=>{kanaBuffer+=' '; kanaPreview.textContent=kanaBuffer}; document.getElementById('backBtn').onclick=()=>{kanaBuffer=[...kanaBuffer].slice(0,-1).join(''); kanaPreview.textContent=kanaBuffer}; document.getElementById('clearNameBtn').onclick=()=>{kanaBuffer=''; kanaPreview.textContent=''}; document.getElementById('nameOkBtn').onclick=()=>{setNameDisplay(); kanaModal.classList.remove('show')}; document.getElementById('nameCancelBtn').onclick=()=>kanaModal.classList.remove('show');
 
-function resetAll(){cancelPlacing(); currentYear=null; monthValue=null; weekdayState=null; dateAnchor=null; kanaBuffer=''; themeKey='none'; imageLayout='equal'; applyTheme(); applyImageLayout(); updateYearDisplay(); setMonthDisplay(); setNameDisplay(); renderWeekdays(); renderDates(); for(let i=0;i<2;i++){imageStates[i]={src:null,zoom:100,x:0,y:0}; renderImage(i);} closeChoiceModal(); closeImageModal(); kanaModal.classList.remove('show'); }
+function resetAll(){cancelPlacing(); currentYear=null; monthValue=null; weekdayState=null; dateAnchor=null; scheduleState={}; kanaBuffer=''; themeKey='none'; imageLayout='equal'; applyTheme(); applyImageLayout(); updateYearDisplay(); setMonthDisplay(); setNameDisplay(); renderWeekdays(); renderDates(); for(let i=0;i<2;i++){imageStates[i]={src:null,zoom:100,x:0,y:0}; renderImage(i);} closeChoiceModal(); closeImageModal(); kanaModal.classList.remove('show'); }
 function loadScript(src){return new Promise((resolve,reject)=>{const s=document.createElement('script'); s.src=src; s.onload=resolve; s.onerror=reject; document.head.appendChild(s)})}
 let currentSaveFile=null;
 let currentSaveUrl=null;
@@ -524,7 +583,7 @@ setNameDisplay();
 renderWeekdays();
 renderDates();
 fitBoard();
-document.getElementById('yearBtn').onclick=openYearChooser; document.getElementById('monthBtn').onclick=openMonthChooser; document.getElementById('weekdayBtn').onclick=openWeekdayChooser; document.getElementById('dateBtn').onclick=startDatePlacement; document.getElementById('nameBtn').onclick=openNameModal; document.getElementById('img1Btn').onclick=()=>openImageModal(0); document.getElementById('img2Btn').onclick=()=>openImageModal(1); document.getElementById('colorBtn').onclick=openThemeChooser; document.getElementById('layoutBtn').onclick=openLayoutChooser; document.getElementById('resetBtn').onclick=resetAll;
+document.getElementById('yearBtn').onclick=openYearChooser; document.getElementById('monthBtn').onclick=openMonthChooser; document.getElementById('weekdayBtn').onclick=openWeekdayChooser; document.getElementById('dateBtn').onclick=startDatePlacement; document.getElementById('scheduleBtn').onclick=openScheduleChooser; document.getElementById('nameBtn').onclick=openNameModal; document.getElementById('img1Btn').onclick=()=>openImageModal(0); document.getElementById('img2Btn').onclick=()=>openImageModal(1); document.getElementById('colorBtn').onclick=openThemeChooser; document.getElementById('layoutBtn').onclick=openLayoutChooser; document.getElementById('resetBtn').onclick=resetAll;
 yearBox.onclick=openYearChooser; monthBox.onclick=openMonthChooser; document.getElementById('nameBox').onclick=openNameModal; document.getElementById('imageSlot1').onclick=()=>openImageModal(0); document.getElementById('imageSlot2').onclick=()=>openImageModal(1);
 </script>
 </body>
