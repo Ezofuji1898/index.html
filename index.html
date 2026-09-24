@@ -61,6 +61,7 @@ button.tool{padding:10px 12px;min-height:48px}
       <button id="layoutBtn" class="tool">しゃしんの ならび</button>
       <button id="resetBtn" class="tool">ぜんぶ もどす</button>
       <button id="saveBtn" class="tool primary">PNGで ほぞん</button>
+      <button id="pdfSaveBtn" class="tool">PDFで ほぞん</button>
     </div>
   </div>
 
@@ -110,8 +111,8 @@ button.tool{padding:10px 12px;min-height:48px}
 </div></div>
 
 <div id="saveModal" class="modal"><div class="dialog">
-  <h2>PNGを ほぞん</h2>
-  <div class="help">カレンダーの画像を作りました。「ほぞん・きょうゆう」を押して、iPadの共有画面から「“ファイル”に保存」または「画像を保存」を選んでください。</div>
+  <h2 id="saveModalTitle">ほぞん</h2>
+  <div id="saveModalHelp" class="help"></div>
   <div style="display:flex;justify-content:center;margin:10px 0 14px;"><img id="savePreview" alt="保存するカレンダー" style="max-width:100%;max-height:48vh;border:1px solid #ddd;border-radius:10px;background:#fff"></div>
   <div class="modal-actions"><button id="shareSaveBtn" class="primary">ほぞん・きょうゆう</button><button id="closeSaveBtn">とじる</button></div>
 </div></div>
@@ -347,65 +348,116 @@ document.getElementById('shareSaveBtn').onclick=async()=>{
     a.click();
     a.remove();
   }catch(e){
-    alert('保存できませんでした。画像を長押しして保存してください。');
+    alert('保存できませんでした。「ほぞん・きょうゆう」から“ファイル”に保存を選んでください。');
   }
 };
+
+async function captureCalendarCanvas(){
+  if(typeof html2canvas==='undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  cancelPlacing();
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+
+  const wrapRect=boardWrap.getBoundingClientRect();
+  const boardRect=board.getBoundingClientRect();
+  const shot=await html2canvas(boardWrap,{
+    backgroundColor:'#e9edf5',
+    scale:2,
+    useCORS:true,
+    logging:false,
+    windowWidth:document.documentElement.clientWidth,
+    windowHeight:document.documentElement.clientHeight,
+    scrollX:0,
+    scrollY:0
+  });
+
+  const sx=shot.width/wrapRect.width;
+  const sy=shot.height/wrapRect.height;
+  let x=Math.round((boardRect.left-wrapRect.left)*sx);
+  let y=Math.round((boardRect.top-wrapRect.top)*sy);
+  let w=Math.round(boardRect.width*sx);
+  let h=Math.round(boardRect.height*sy);
+  x=Math.max(0,Math.min(x,shot.width-1));
+  y=Math.max(0,Math.min(y,shot.height-1));
+  w=Math.max(1,Math.min(w,shot.width-x));
+  h=Math.max(1,Math.min(h,shot.height-y));
+
+  const cropped=document.createElement('canvas');
+  cropped.width=w;
+  cropped.height=h;
+  const ctx=cropped.getContext('2d');
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,w,h);
+  ctx.drawImage(shot,x,y,w,h,0,0,w,h);
+  return cropped;
+}
+
+function baseCalendarName(){
+  return (currentYear!=null && monthValue!=null) ? `${currentYear}年${monthValue}月カレンダー` : 'カレンダー';
+}
+
+function showSaveModal(file,previewUrl,kind){
+  if(currentSaveUrl) URL.revokeObjectURL(currentSaveUrl);
+  currentSaveUrl=previewUrl;
+  currentSaveFile=file;
+  document.getElementById('savePreview').src=previewUrl;
+  document.getElementById('saveModalTitle').textContent=kind==='pdf'?'PDFを ほぞん':'PNGを ほぞん';
+  document.getElementById('saveModalHelp').textContent=kind==='pdf'
+    ? 'A4たてのPDFを作りました。「ほぞん・きょうゆう」を押して、iPadの共有画面から「“ファイル”に保存」を選んでください。'
+    : 'カレンダーの画像を作りました。「ほぞん・きょうゆう」を押して、iPadの共有画面から「“ファイル”に保存」または「画像を保存」を選んでください。';
+  document.getElementById('saveModal').classList.add('show');
+}
+
 document.getElementById('saveBtn').onclick=async()=>{
   try{
-    if(typeof html2canvas==='undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
-
-    // 「描き直す」のではなく、画面に見えている boardWrap 全体をいったん撮影し、
-    // その中からカレンダー部分だけを切り抜く。
-    // これにより、iPad画面上の縮小率・文字・画像の見え方をそのまま保存する。
-    cancelPlacing();
-    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-
-    const wrapRect=boardWrap.getBoundingClientRect();
-    const boardRect=board.getBoundingClientRect();
-
-    const shot=await html2canvas(boardWrap,{
-      backgroundColor:'#e9edf5',
-      scale:2,
-      useCORS:true,
-      logging:false,
-      windowWidth:document.documentElement.clientWidth,
-      windowHeight:document.documentElement.clientHeight,
-      scrollX:0,
-      scrollY:0
-    });
-
-    // html2canvas の実際の出力倍率から、見えているカレンダー領域をピクセル座標へ変換
-    const sx=shot.width/wrapRect.width;
-    const sy=shot.height/wrapRect.height;
-    let x=Math.round((boardRect.left-wrapRect.left)*sx);
-    let y=Math.round((boardRect.top-wrapRect.top)*sy);
-    let w=Math.round(boardRect.width*sx);
-    let h=Math.round(boardRect.height*sy);
-
-    // 端数や境界の誤差でキャンバス外へ出ないよう補正
-    x=Math.max(0,Math.min(x,shot.width-1));
-    y=Math.max(0,Math.min(y,shot.height-1));
-    w=Math.max(1,Math.min(w,shot.width-x));
-    h=Math.max(1,Math.min(h,shot.height-y));
-
-    const cropped=document.createElement('canvas');
-    cropped.width=w;
-    cropped.height=h;
-    const ctx=cropped.getContext('2d');
-    ctx.fillStyle='#fff';
-    ctx.fillRect(0,0,w,h);
-    ctx.drawImage(shot,x,y,w,h,0,0,w,h);
-
-    const filename=(currentYear!=null && monthValue!=null) ? `${currentYear}年${monthValue}月カレンダー.png` : 'カレンダー.png';
+    const cropped=await captureCalendarCanvas();
+    const filename=baseCalendarName()+'.png';
     const blob=await new Promise((resolve,reject)=>cropped.toBlob(b=>b?resolve(b):reject(new Error('PNG変換に失敗しました')),'image/png'));
-    if(currentSaveUrl) URL.revokeObjectURL(currentSaveUrl);
-    currentSaveUrl=URL.createObjectURL(blob);
-    currentSaveFile=new File([blob],filename,{type:'image/png'});
-    document.getElementById('savePreview').src=currentSaveUrl;
-    document.getElementById('saveModal').classList.add('show');
+    const url=URL.createObjectURL(blob);
+    const file=new File([blob],filename,{type:'image/png'});
+    showSaveModal(file,url,'png');
   }catch(e){
     console.error(e);
-    alert('PNG保存に必要な機能を読み込めませんでした。');
+    alert('PNGを作成できませんでした。');
+  }
+};
+
+document.getElementById('pdfSaveBtn').onclick=async()=>{
+  try{
+    const cropped=await captureCalendarCanvas();
+    if(!window.jspdf || !window.jspdf.jsPDF){
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js');
+    }
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+    const pageW=210,pageH=297,margin=8;
+    const maxW=pageW-margin*2,maxH=pageH-margin*2;
+    const ratio=cropped.width/cropped.height;
+    let drawW=maxW,drawH=drawW/ratio;
+    if(drawH>maxH){drawH=maxH;drawW=drawH*ratio;}
+    const x=(pageW-drawW)/2;
+    const y=(pageH-drawH)/2;
+    const imgData=cropped.toDataURL('image/jpeg',0.96);
+    pdf.addImage(imgData,'JPEG',x,y,drawW,drawH,undefined,'FAST');
+    const blob=pdf.output('blob');
+    const filename=baseCalendarName()+'.pdf';
+    const pdfUrl=URL.createObjectURL(blob);
+    const file=new File([blob],filename,{type:'application/pdf'});
+
+    // PDFそのものはimgタグでプレビューできないため、画面では同じカレンダー画像を表示する。
+    const previewBlob=await new Promise((resolve,reject)=>cropped.toBlob(b=>b?resolve(b):reject(new Error('プレビュー作成に失敗しました')),'image/png'));
+    const previewUrl=URL.createObjectURL(previewBlob);
+    if(currentSaveUrl) URL.revokeObjectURL(currentSaveUrl);
+    currentSaveUrl=pdfUrl;
+    currentSaveFile=file;
+    document.getElementById('savePreview').src=previewUrl;
+    document.getElementById('saveModalTitle').textContent='PDFを ほぞん';
+    document.getElementById('saveModalHelp').textContent='A4たてのPDFを作りました。「ほぞん・きょうゆう」を押して、iPadの共有画面から「“ファイル”に保存」を選んでください。';
+    document.getElementById('saveModal').classList.add('show');
+    // previewUrl はモーダルを閉じた後に画像要素から外れれば回収される。少し遅らせて解放する。
+    setTimeout(()=>URL.revokeObjectURL(previewUrl),60000);
+  }catch(e){
+    console.error(e);
+    alert('PDFを作成できませんでした。インターネット接続を確認して、もう一度お試しください。');
   }
 };
 
