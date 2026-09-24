@@ -109,6 +109,13 @@ button.tool{padding:10px 12px;min-height:48px}
   <div class="modal-actions"><button id="clearImageBtn" class="danger">画像を けす</button><button id="closeImageBtn" class="primary">とじる</button></div>
 </div></div>
 
+<div id="saveModal" class="modal"><div class="dialog">
+  <h2>PNGを ほぞん</h2>
+  <div class="help">カレンダーの画像を作りました。「ほぞん・きょうゆう」を押して、iPadの共有画面から「“ファイル”に保存」または「画像を保存」を選んでください。</div>
+  <div style="display:flex;justify-content:center;margin:10px 0 14px;"><img id="savePreview" alt="保存するカレンダー" style="max-width:100%;max-height:48vh;border:1px solid #ddd;border-radius:10px;background:#fff"></div>
+  <div class="modal-actions"><button id="shareSaveBtn" class="primary">ほぞん・きょうゆう</button><button id="closeSaveBtn">とじる</button></div>
+</div></div>
+
 <script>
 const board=document.getElementById('calendarBoard');
 const boardWrap=document.getElementById('boardWrap');
@@ -313,6 +320,36 @@ document.getElementById('dakutenBtn').onclick=()=>replaceLast(dakutenMap); docum
 
 function resetAll(){cancelPlacing(); currentYear=null; monthValue=null; weekdayState=null; dateAnchor=null; kanaBuffer=''; themeKey='none'; imageLayout='equal'; applyTheme(); applyImageLayout(); updateYearDisplay(); setMonthDisplay(); setNameDisplay(); renderWeekdays(); renderDates(); for(let i=0;i<2;i++){imageStates[i]={src:null,zoom:100,x:0,y:0}; renderImage(i);} closeChoiceModal(); closeImageModal(); kanaModal.classList.remove('show'); }
 function loadScript(src){return new Promise((resolve,reject)=>{const s=document.createElement('script'); s.src=src; s.onload=resolve; s.onerror=reject; document.head.appendChild(s)})}
+let currentSaveFile=null;
+let currentSaveUrl=null;
+function closeSaveModal(){
+  document.getElementById('saveModal').classList.remove('show');
+  if(currentSaveUrl){URL.revokeObjectURL(currentSaveUrl);currentSaveUrl=null;}
+  currentSaveFile=null;
+}
+document.getElementById('closeSaveBtn').onclick=closeSaveModal;
+document.getElementById('shareSaveBtn').onclick=async()=>{
+  if(!currentSaveFile)return;
+  try{
+    if(navigator.share && (!navigator.canShare || navigator.canShare({files:[currentSaveFile]}))){
+      await navigator.share({files:[currentSaveFile],title:currentSaveFile.name});
+      return;
+    }
+  }catch(e){
+    if(e && e.name==='AbortError')return;
+    console.warn('share failed',e);
+  }
+  try{
+    const a=document.createElement('a');
+    a.href=currentSaveUrl;
+    a.download=currentSaveFile.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }catch(e){
+    alert('保存できませんでした。画像を長押しして保存してください。');
+  }
+};
 document.getElementById('saveBtn').onclick=async()=>{
   try{
     if(typeof html2canvas==='undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
@@ -359,11 +396,13 @@ document.getElementById('saveBtn').onclick=async()=>{
     ctx.fillRect(0,0,w,h);
     ctx.drawImage(shot,x,y,w,h,0,0,w,h);
 
-    const a=document.createElement('a');
     const filename=(currentYear!=null && monthValue!=null) ? `${currentYear}年${monthValue}月カレンダー.png` : 'カレンダー.png';
-    a.download=filename;
-    a.href=cropped.toDataURL('image/png');
-    a.click();
+    const blob=await new Promise((resolve,reject)=>cropped.toBlob(b=>b?resolve(b):reject(new Error('PNG変換に失敗しました')),'image/png'));
+    if(currentSaveUrl) URL.revokeObjectURL(currentSaveUrl);
+    currentSaveUrl=URL.createObjectURL(blob);
+    currentSaveFile=new File([blob],filename,{type:'image/png'});
+    document.getElementById('savePreview').src=currentSaveUrl;
+    document.getElementById('saveModal').classList.add('show');
   }catch(e){
     console.error(e);
     alert('PNG保存に必要な機能を読み込めませんでした。');
