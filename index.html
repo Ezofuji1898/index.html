@@ -25,16 +25,16 @@ button.tool{padding:10px 12px;min-height:48px}
 .yearbox,.monthbox,.namebox{height:64px;border:2px solid var(--themeMain);border-radius:12px;background:var(--themeSoft);color:var(--themeText);display:flex;align-items:center;justify-content:center;position:relative;padding:6px 10px;cursor:pointer}
 .yearbox{padding:0 10px;overflow:hidden}
 .monthbox{font-size:34px;font-weight:800}
-.namebox{padding:8px}
-#nameDisplay{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;text-align:center}
+.namebox{padding:6px 10px;gap:10px;justify-content:flex-start}.name-fixed-label{flex:0 0 92px;height:100%;display:flex;align-items:center;justify-content:center;border-right:1px solid #bbb;padding-right:10px}.name-fixed-label .kanji{font-size:28px;font-weight:800;line-height:1}.name-fixed-label .furigana{font-size:10px;font-weight:700;line-height:1;margin-bottom:3px}
+#nameDisplay{flex:1;min-width:0;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;text-align:center}
 .ruby-label{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}.ruby-label .furigana{font-size:10px;font-weight:600;margin-bottom:2px;white-space:nowrap}.ruby-label .kanji{font-weight:800}.placeholder-label .kanji{font-size:30px;line-height:1}.placeholder-label .furigana{font-size:10px}
 .year-line{width:100%;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}.year-chip{display:inline-flex;align-items:center;justify-content:center;text-align:center;font-size:18px;font-weight:800;line-height:1}.year-sep{display:inline-block;font-size:17px;font-weight:700;line-height:1;color:#555}
-.grid{position:absolute;left:28px;right:28px;top:128px;height:675px;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:52px repeat(6,1fr)}
+.grid{position:absolute;left:28px;right:28px;top:188px;height:615px;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:52px repeat(6,1fr)}
 .cell{position:relative;border-right:1px solid #111;border-bottom:1px solid #111;overflow:hidden}.cell:nth-child(7n+1){border-left:1px solid #111}.cell:nth-child(-n+7){border-top:1px solid #111}.weekcell{background:#f8f9fb}
 .weekday-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;cursor:pointer}.weekday-label.sat{color:var(--sat)}.weekday-label.sun{color:var(--sun)}
 .date-label{position:absolute;left:7px;top:5px;font-size:26px;font-weight:800;line-height:1}.date-label.anchor{outline:3px solid rgba(59,130,246,.32);border-radius:6px;padding:2px;cursor:pointer}.date-label.sat{color:var(--sat)}.date-label.sun{color:var(--sun)}
 .schedule-list{position:absolute;left:5px;right:5px;top:35px;bottom:4px;display:flex;flex-direction:column;gap:3px;overflow:hidden;pointer-events:none}.schedule-tag{min-height:17px;border-radius:6px;padding:2px 4px;font-size:11px;font-weight:800;line-height:1.15;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid rgba(0,0,0,.18)}.schedule-pickup{background:#fff4cf}.schedule-bus{background:#e8f1ff}.schedule-dayservice{background:#eaf8ea}.schedule-rehab{background:#f4eaff}.schedule-hospital{background:#ffe9e9}
-.image-frame{position:absolute;left:28px;right:28px;top:830px;height:255px;border:0;border-radius:0;background:#fff}.image-frame-body{position:absolute;inset:10px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.image-frame-body.layout-left-large{grid-template-columns:1.45fr .85fr}.image-frame-body.layout-right-large{grid-template-columns:.85fr 1.45fr}.image-slot{position:relative;border-radius:10px;background:#fff;overflow:hidden;cursor:pointer}.image-slot.empty{border:1.5px dashed var(--imageGuide);background:#fff}.image-slot:not(.empty){border:0;background:transparent}.image-slot.selected{outline:4px solid rgba(59,130,246,.35)}.image-slot-label{display:none}.image-slot.empty .image-slot-label{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;color:#8a94a3;font-size:20px;font-weight:800;pointer-events:none}.image-slot img{position:absolute;left:50%;top:50%;width:auto;height:auto;max-width:none;max-height:none;transform-origin:center center;pointer-events:none;user-select:none}
+.goalbox{position:absolute;left:28px;right:28px;top:122px;height:52px;border:2px solid var(--themeMain);border-radius:12px;background:var(--themeSoft);color:var(--themeText);display:flex;align-items:center;padding:5px 12px;cursor:pointer;overflow:hidden}.goal-label{flex:0 0 86px;display:flex;align-items:center;justify-content:center}.goal-value{flex:1;min-width:0;font-size:18px;font-weight:800;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:10px}.image-frame{position:absolute;left:28px;right:28px;top:830px;height:255px;border:0;border-radius:0;background:#fff}.image-frame-body{position:absolute;inset:10px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.image-frame-body.layout-left-large{grid-template-columns:1.45fr .85fr}.image-frame-body.layout-right-large{grid-template-columns:.85fr 1.45fr}.image-slot{position:relative;border-radius:10px;background:#fff;overflow:hidden;cursor:pointer}.image-slot.empty{border:1.5px dashed var(--imageGuide);background:#fff}.image-slot:not(.empty){border:0;background:transparent}.image-slot.selected{outline:4px solid rgba(59,130,246,.35)}.image-slot-label{display:none}.image-slot.empty .image-slot-label{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;color:#8a94a3;font-size:20px;font-weight:800;pointer-events:none}.image-slot img{position:absolute;left:50%;top:50%;width:auto;height:auto;max-width:none;max-height:none;transform-origin:center center;pointer-events:none;user-select:none}
 .placing-hint{position:absolute;left:12px;right:12px;top:12px;display:none;padding:11px 14px;border:2px solid var(--accent);border-radius:12px;background:#eef5ff;font-weight:800;z-index:20}
 .placing-hint.show{display:block}.target-ready{background:#eef5ff!important;box-shadow:inset 0 0 0 3px rgba(59,130,246,.25)}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:9999;padding:12px}.modal.show{display:flex}.dialog{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;padding:16px;border:2px solid #bbb}.dialog h2{font-size:24px;margin:0 0 10px}.dialog .help{font-size:14px;color:var(--muted);line-height:1.45;margin-bottom:10px}
@@ -55,6 +55,7 @@ button.tool{padding:10px 12px;min-height:48px}
       <button id="weekdayBtn" class="tool">ようびの はじまり</button>
       <button id="dateBtn" class="tool">「1」をおく</button>
       <button id="scheduleBtn" class="tool">よてい</button>
+      <button id="goalBtn" class="tool">もくひょう</button>
       <button id="nameBtn" class="tool">なまえ</button>
       <button id="img1Btn" class="tool">がぞう1</button>
       <button id="img2Btn" class="tool">がぞう2</button>
@@ -73,7 +74,11 @@ button.tool{padding:10px 12px;min-height:48px}
         <div class="topline">
           <div id="yearBox" class="yearbox" title="ねんを えらぶ"></div>
           <div id="monthBox" class="monthbox" title="つきを えらぶ"></div>
-          <div class="namebox" id="nameBox"><div id="nameDisplay"></div></div>
+          <div class="namebox" id="nameBox"><div class="name-fixed-label"><span class="ruby-label"><span class="furigana">なまえ</span><span class="kanji">名前</span></span></div><div id="nameDisplay"></div></div>
+        </div>
+        <div id="goalBox" class="goalbox">
+          <div class="goal-label"><span class="ruby-label placeholder-label"><span class="furigana">もくひょう</span><span class="kanji">目標</span></span></div>
+          <div id="goalDisplay" class="goal-value"></div>
         </div>
         <div id="grid" class="grid"></div>
         <div class="image-frame"><div id="imageFrameBody" class="image-frame-body">
@@ -94,10 +99,46 @@ button.tool{padding:10px 12px;min-height:48px}
 
 <div id="kanaModal" class="modal"><div class="dialog">
   <h2>なまえを いれよう</h2>
+  <div class="help">ひらがなで なまえを つくります。必要なときは「かんじに へんかん」を押します。</div>
   <div id="kanaPreview" class="kana-preview"></div>
+  <div id="kanjiCandidateBox" class="choice-grid" style="display:none;margin:0 0 12px;"></div>
   <div id="kanaGrid" class="kana-grid"></div>
   <div class="modal-actions">
-    <button id="dakutenBtn">゛</button><button id="handakutenBtn">゜</button><button id="smallBtn">ちいさく</button><button id="spaceBtn">スペース</button><button id="backBtn">1もじ けす</button><button id="clearNameBtn">ぜんぶ けす</button><button id="nameOkBtn" class="primary">けってい</button><button id="nameCancelBtn">やめる</button>
+    <button id="kanjiConvertBtn">かんじに へんかん</button><button id="dakutenBtn">゛</button><button id="handakutenBtn">゜</button><button id="smallBtn">ちいさく</button><button id="spaceBtn">スペース</button><button id="backBtn">1もじ けす</button><button id="clearNameBtn">ぜんぶ けす</button><button id="nameOkBtn" class="primary">けってい</button><button id="nameCancelBtn">やめる</button>
+  </div>
+</div></div>
+
+
+<div id="goalModal" class="modal"><div class="dialog">
+  <h2>もくひょうを えらぼう</h2>
+  <div class="help">えらぶことも、先生といっしょに自由に入力することもできます。</div>
+  <div class="choice-grid" style="margin-bottom:14px;">
+    <button type="button" class="goalPresetBtn" data-goal="よていを かくにんする">よていを かくにんする</button>
+    <button type="button" class="goalPresetBtn" data-goal="じぶんで よていを いれる">じぶんで よていを いれる</button>
+    <button type="button" class="goalPresetBtn" data-goal="ひにちと ようびを たしかめる">ひにちと ようびを たしかめる</button>
+  </div>
+  <div class="modal-actions">
+    <button id="goalKanaOpenBtn" class="primary">じゆうに つくる</button>
+    <button id="goalClearBtn" class="danger">もくひょうを けす</button>
+    <button id="goalCancelBtn">やめる</button>
+  </div>
+</div></div>
+
+
+<div id="goalKanaModal" class="modal"><div class="dialog">
+  <h2>もくひょうを つくろう</h2>
+  <div class="help">ひらがなを えらんで、もくひょうを つくります。</div>
+  <div id="goalKanaPreview" class="kana-preview"></div>
+  <div id="goalKanaGrid" class="kana-grid"></div>
+  <div class="modal-actions">
+    <button id="goalDakutenBtn">゛</button>
+    <button id="goalHandakutenBtn">゜</button>
+    <button id="goalSmallBtn">ちいさく</button>
+    <button id="goalSpaceBtn">スペース</button>
+    <button id="goalBackBtn">1もじ けす</button>
+    <button id="goalClearTextBtn">ぜんぶ けす</button>
+    <button id="goalKanaOkBtn" class="primary">けってい</button>
+    <button id="goalKanaCancelBtn">やめる</button>
   </div>
 </div></div>
 
@@ -127,11 +168,13 @@ const grid=document.getElementById('grid');
 const monthBox=document.getElementById('monthBox');
 const yearBox=document.getElementById('yearBox');
 const nameDisplay=document.getElementById('nameDisplay');
+const goalDisplay=document.getElementById('goalDisplay');
+const goalBox=document.getElementById('goalBox');
 const imageFrameBody=document.getElementById('imageFrameBody');
 const weekdayNames=['月','火','水','木','金','土','日'];
 const weekdayReading={月:'げつ',火:'か',水:'すい',木:'もく',金:'きん',土:'ど',日:'にち'};
 const yearRange=[...Array(17)].map((_,i)=>2020+i);
-let currentYear=null, monthValue=null, weekdayState=null, dateAnchor=null, placing=null, kanaBuffer='';
+let currentYear=null, monthValue=null, weekdayState=null, dateAnchor=null, placing=null, kanaBuffer='', goalValue='', goalKanaBuffer='';
 const imageStates=[{src:null,zoom:100,x:0,y:0},{src:null,zoom:100,x:0,y:0}];
 let scheduleState={};
 const scheduleDefs={pickup:{label:'おむかえ',className:'schedule-pickup'},bus:{label:'バス',className:'schedule-bus'},dayservice:{label:'デイサービス',className:'schedule-dayservice'},rehab:{label:'リハビリ',className:'schedule-rehab'},hospital:{label:'つういん',className:'schedule-hospital'}};
@@ -171,7 +214,13 @@ function setMonthDisplay(){
   else monthBox.innerHTML='<span class="ruby-label"><span class="furigana">がつ</span><span class="kanji">'+monthValue+'月</span></span>';
 }
 function setNameDisplay(){
-  nameDisplay.innerHTML=kanaBuffer?kanaBuffer:'<span class="ruby-label placeholder-label"><span class="furigana">なまえ</span><span class="kanji">名前</span></span>';
+  nameDisplay.textContent=kanaBuffer||'';
+}
+function setGoalDisplay(){
+  goalDisplay.textContent=goalValue||'';
+}
+function openGoalChooser(){
+  document.getElementById('goalModal').classList.add('show');
 }
 function classForWeekday(n){return n==='土'?'sat':n==='日'?'sun':''}
 function monthDays(y,m){return new Date(y,m,0).getDate()}
@@ -324,7 +373,7 @@ function openLayoutChooser(){
 }
 
 function boardPoint(e){const r=board.getBoundingClientRect(),sx=794/r.width,sy=1123/r.height;return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy}}
-function cellFromPoint(e,header){const p=boardPoint(e),left=28,top=128,w=738,h=675,head=52,colW=w/7,rowH=(h-head)/6;if(p.x<left||p.x>left+w)return null;const col=Math.max(0,Math.min(6,Math.floor((p.x-left)/colW)));if(header){if(p.y<top||p.y>top+head)return null;return col}if(p.y<top+head||p.y>top+h)return null;const row=Math.max(0,Math.min(5,Math.floor((p.y-(top+head))/rowH)));return row*7+col}
+function cellFromPoint(e,header){const p=boardPoint(e),left=28,top=188,w=738,h=615,head=52,colW=w/7,rowH=(h-head)/6;if(p.x<left||p.x>left+w)return null;const col=Math.max(0,Math.min(6,Math.floor((p.x-left)/colW)));if(header){if(p.y<top||p.y>top+head)return null;return col}if(p.y<top+head||p.y>top+h)return null;const row=Math.max(0,Math.min(5,Math.floor((p.y-(top+head))/rowH)));return row*7+col}
 board.addEventListener('click',(e)=>{
   if(!placing) return;
   if(placing.type==='date'){
@@ -368,16 +417,140 @@ document.getElementById('imageFileInput').addEventListener('change',(e)=>{const 
 document.getElementById('clearImageBtn').onclick=()=>{imageStates[currentImageSlot]={src:null,zoom:100,x:0,y:0}; renderImage(currentImageSlot); openImageModal(currentImageSlot);};
 document.getElementById('closeImageBtn').onclick=closeImageModal;
 
+// goal modal
+document.querySelectorAll('.goalPresetBtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    goalValue=btn.dataset.goal||'';
+    setGoalDisplay();
+    document.getElementById('goalModal').classList.remove('show');
+  });
+});
+document.getElementById('goalKanaOpenBtn').onclick=()=>{
+  goalKanaBuffer=goalValue||'';
+  document.getElementById('goalKanaPreview').textContent=goalKanaBuffer;
+  document.getElementById('goalModal').classList.remove('show');
+  document.getElementById('goalKanaModal').classList.add('show');
+};
+document.getElementById('goalClearBtn').onclick=()=>{
+  goalValue='';
+  goalKanaBuffer='';
+  setGoalDisplay();
+  document.getElementById('goalModal').classList.remove('show');
+};
+document.getElementById('goalCancelBtn').onclick=()=>document.getElementById('goalModal').classList.remove('show');
+
+// goal kana keyboard
+const goalKanaModal=document.getElementById('goalKanaModal');
+const goalKanaPreview=document.getElementById('goalKanaPreview');
+const goalKanaGrid=document.getElementById('goalKanaGrid');
+const goalKanaChars=['あ','い','う','え','お','か','き','く','け','こ','さ','し','す','せ','そ','た','ち','つ','て','と','な','に','ぬ','ね','の','は','ひ','ふ','へ','ほ','ま','み','む','め','も','や','ゆ','よ','ら','り','る','れ','ろ','わ','を','ん'];
+goalKanaChars.forEach(ch=>{
+  const b=document.createElement('button');
+  b.textContent=ch;
+  b.onclick=()=>{goalKanaBuffer+=ch;goalKanaPreview.textContent=goalKanaBuffer};
+  goalKanaGrid.appendChild(b);
+});
+const goalDakutenMap={か:'が',き:'ぎ',く:'ぐ',け:'げ',こ:'ご',さ:'ざ',し:'じ',す:'ず',せ:'ぜ',そ:'ぞ',た:'だ',ち:'ぢ',つ:'づ',て:'で',と:'ど',は:'ば',ひ:'び',ふ:'ぶ',へ:'べ',ほ:'ぼ'};
+const goalHandakuMap={は:'ぱ',ひ:'ぴ',ふ:'ぷ',へ:'ぺ',ほ:'ぽ'};
+const goalSmallMap={あ:'ぁ',い:'ぃ',う:'ぅ',え:'ぇ',お:'ぉ',や:'ゃ',ゆ:'ゅ',よ:'ょ',つ:'っ'};
+function replaceGoalLast(map){
+  if(!goalKanaBuffer)return;
+  const a=[...goalKanaBuffer],last=a.pop();
+  if(map[last])goalKanaBuffer=a.join('')+map[last];
+  goalKanaPreview.textContent=goalKanaBuffer;
+}
+document.getElementById('goalDakutenBtn').onclick=()=>replaceGoalLast(goalDakutenMap);
+document.getElementById('goalHandakutenBtn').onclick=()=>replaceGoalLast(goalHandakuMap);
+document.getElementById('goalSmallBtn').onclick=()=>replaceGoalLast(goalSmallMap);
+document.getElementById('goalSpaceBtn').onclick=()=>{goalKanaBuffer+=' ';goalKanaPreview.textContent=goalKanaBuffer};
+document.getElementById('goalBackBtn').onclick=()=>{goalKanaBuffer=[...goalKanaBuffer].slice(0,-1).join('');goalKanaPreview.textContent=goalKanaBuffer};
+document.getElementById('goalClearTextBtn').onclick=()=>{goalKanaBuffer='';goalKanaPreview.textContent=''};
+document.getElementById('goalKanaOkBtn').onclick=()=>{
+  goalValue=goalKanaBuffer.trim();
+  setGoalDisplay();
+  goalKanaModal.classList.remove('show');
+};
+document.getElementById('goalKanaCancelBtn').onclick=()=>goalKanaModal.classList.remove('show');
+
 // name modal
 const kanaModal=document.getElementById('kanaModal'),kanaPreview=document.getElementById('kanaPreview'),kanaGrid=document.getElementById('kanaGrid');
 const kanaChars=['あ','い','う','え','お','か','き','く','け','こ','さ','し','す','せ','そ','た','ち','つ','て','と','な','に','ぬ','ね','の','は','ひ','ふ','へ','ほ','ま','み','む','め','も','や','ゆ','よ','ら','り','る','れ','ろ','わ','を','ん'];
-kanaChars.forEach(ch=>{const b=document.createElement('button'); b.textContent=ch; b.onclick=()=>{kanaBuffer+=ch; kanaPreview.textContent=kanaBuffer}; kanaGrid.appendChild(b)});
+kanaChars.forEach(ch=>{const b=document.createElement('button'); b.textContent=ch; b.onclick=()=>{kanaBuffer+=ch; kanaPreview.textContent=kanaBuffer; document.getElementById('kanjiCandidateBox').style.display='none'}; kanaGrid.appendChild(b)});
 const dakutenMap={か:'が',き:'ぎ',く:'ぐ',け:'げ',こ:'ご',さ:'ざ',し:'じ',す:'ず',せ:'ぜ',そ:'ぞ',た:'だ',ち:'ぢ',つ:'づ',て:'で',と:'ど',は:'ば',ひ:'び',ふ:'ぶ',へ:'べ',ほ:'ぼ'}, handakuMap={は:'ぱ',ひ:'ぴ',ふ:'ぷ',へ:'ぺ',ほ:'ぽ'}, smallMap={あ:'ぁ',い:'ぃ',う:'ぅ',え:'ぇ',お:'ぉ',や:'ゃ',ゆ:'ゅ',よ:'ょ',つ:'っ'};
 function replaceLast(map){if(!kanaBuffer)return;const a=[...kanaBuffer],last=a.pop(); if(map[last]) kanaBuffer=a.join('')+map[last]; kanaPreview.textContent=kanaBuffer}
-function openNameModal(){ kanaPreview.textContent=kanaBuffer; kanaModal.classList.add('show'); }
-document.getElementById('dakutenBtn').onclick=()=>replaceLast(dakutenMap); document.getElementById('handakutenBtn').onclick=()=>replaceLast(handakuMap); document.getElementById('smallBtn').onclick=()=>replaceLast(smallMap); document.getElementById('spaceBtn').onclick=()=>{kanaBuffer+=' '; kanaPreview.textContent=kanaBuffer}; document.getElementById('backBtn').onclick=()=>{kanaBuffer=[...kanaBuffer].slice(0,-1).join(''); kanaPreview.textContent=kanaBuffer}; document.getElementById('clearNameBtn').onclick=()=>{kanaBuffer=''; kanaPreview.textContent=''}; document.getElementById('nameOkBtn').onclick=()=>{setNameDisplay(); kanaModal.classList.remove('show')}; document.getElementById('nameCancelBtn').onclick=()=>kanaModal.classList.remove('show');
+function openNameModal(){
+  kanaPreview.textContent=kanaBuffer;
+  document.getElementById('kanjiCandidateBox').style.display='none';
+  document.getElementById('kanjiCandidateBox').innerHTML='';
+  kanaModal.classList.add('show');
+}
+function buildKanjiCandidates(textValue){
+  const dict=[
+    {reading:'たに',kanji:'谷'},
+    {reading:'そうたろう',kanji:'綜太郎'},
+    {reading:'すずき',kanji:'鈴木'},
+    {reading:'かなで',kanji:'奏'}
+  ];
+  const results=[];
+  const seen=new Set();
 
-function resetAll(){cancelPlacing(); currentYear=null; monthValue=null; weekdayState=null; dateAnchor=null; scheduleState={}; kanaBuffer=''; themeKey='none'; imageLayout='equal'; applyTheme(); applyImageLayout(); updateYearDisplay(); setMonthDisplay(); setNameDisplay(); renderWeekdays(); renderDates(); for(let i=0;i<2;i++){imageStates[i]={src:null,zoom:100,x:0,y:0}; renderImage(i);} closeChoiceModal(); closeImageModal(); kanaModal.classList.remove('show'); }
+  function addCandidate(v){
+    if(v && v!==textValue && !seen.has(v)){
+      seen.add(v);
+      results.push(v);
+    }
+  }
+
+  // Individual conversion candidates.
+  dict.forEach(item=>{
+    if(textValue.includes(item.reading)){
+      addCandidate(textValue.replace(item.reading,item.kanji));
+    }
+  });
+
+  // Combined conversion when more than one registered reading is present.
+  let combined=textValue;
+  let changed=false;
+  dict.forEach(item=>{
+    if(combined.includes(item.reading)){
+      combined=combined.replace(item.reading,item.kanji);
+      changed=true;
+    }
+  });
+  if(changed) addCandidate(combined);
+
+  return results;
+}
+function showKanjiCandidates(){
+  const box=document.getElementById('kanjiCandidateBox');
+  const candidates=buildKanjiCandidates(kanaBuffer);
+  box.innerHTML='';
+  if(!candidates.length){
+    const msg=document.createElement('div');
+    msg.style.gridColumn='1 / -1';
+    msg.style.padding='10px';
+    msg.style.color='var(--muted)';
+    msg.style.fontWeight='700';
+    msg.textContent='この読みの かんじ候補は ありません';
+    box.appendChild(msg);
+  }else{
+    candidates.forEach(candidate=>{
+      const b=document.createElement('button');
+      b.type='button';
+      b.textContent=candidate;
+      b.onclick=()=>{
+        kanaBuffer=candidate;
+        kanaPreview.textContent=kanaBuffer;
+        box.style.display='none';
+      };
+      box.appendChild(b);
+    });
+  }
+  box.style.display='grid';
+}
+document.getElementById('kanjiConvertBtn').onclick=showKanjiCandidates; document.getElementById('dakutenBtn').onclick=()=>replaceLast(dakutenMap); document.getElementById('handakutenBtn').onclick=()=>replaceLast(handakuMap); document.getElementById('smallBtn').onclick=()=>replaceLast(smallMap); document.getElementById('spaceBtn').onclick=()=>{kanaBuffer+=' '; kanaPreview.textContent=kanaBuffer}; document.getElementById('backBtn').onclick=()=>{kanaBuffer=[...kanaBuffer].slice(0,-1).join(''); kanaPreview.textContent=kanaBuffer}; document.getElementById('clearNameBtn').onclick=()=>{kanaBuffer=''; kanaPreview.textContent=''}; document.getElementById('nameOkBtn').onclick=()=>{setNameDisplay(); kanaModal.classList.remove('show')}; document.getElementById('nameCancelBtn').onclick=()=>kanaModal.classList.remove('show');
+
+function resetAll(){cancelPlacing(); currentYear=null; monthValue=null; weekdayState=null; dateAnchor=null; scheduleState={}; kanaBuffer=''; goalValue=''; goalKanaBuffer=''; themeKey='none'; imageLayout='equal'; applyTheme(); applyImageLayout(); updateYearDisplay(); setMonthDisplay(); setNameDisplay(); setGoalDisplay(); renderWeekdays(); renderDates(); for(let i=0;i<2;i++){imageStates[i]={src:null,zoom:100,x:0,y:0}; renderImage(i);} closeChoiceModal(); closeImageModal(); document.getElementById('goalModal').classList.remove('show'); document.getElementById('goalKanaModal').classList.remove('show'); kanaModal.classList.remove('show'); }
 function loadScript(src){return new Promise((resolve,reject)=>{const s=document.createElement('script'); s.src=src; s.onload=resolve; s.onerror=reject; document.head.appendChild(s)})}
 let currentSaveFile=null;
 let currentSaveUrl=null;
@@ -580,11 +753,12 @@ applyImageLayout();
 updateYearDisplay();
 setMonthDisplay();
 setNameDisplay();
+setGoalDisplay();
 renderWeekdays();
 renderDates();
 fitBoard();
-document.getElementById('yearBtn').onclick=openYearChooser; document.getElementById('monthBtn').onclick=openMonthChooser; document.getElementById('weekdayBtn').onclick=openWeekdayChooser; document.getElementById('dateBtn').onclick=startDatePlacement; document.getElementById('scheduleBtn').onclick=openScheduleChooser; document.getElementById('nameBtn').onclick=openNameModal; document.getElementById('img1Btn').onclick=()=>openImageModal(0); document.getElementById('img2Btn').onclick=()=>openImageModal(1); document.getElementById('colorBtn').onclick=openThemeChooser; document.getElementById('layoutBtn').onclick=openLayoutChooser; document.getElementById('resetBtn').onclick=resetAll;
-yearBox.onclick=openYearChooser; monthBox.onclick=openMonthChooser; document.getElementById('nameBox').onclick=openNameModal; document.getElementById('imageSlot1').onclick=()=>openImageModal(0); document.getElementById('imageSlot2').onclick=()=>openImageModal(1);
+document.getElementById('yearBtn').onclick=openYearChooser; document.getElementById('monthBtn').onclick=openMonthChooser; document.getElementById('weekdayBtn').onclick=openWeekdayChooser; document.getElementById('dateBtn').onclick=startDatePlacement; document.getElementById('scheduleBtn').onclick=openScheduleChooser; document.getElementById('goalBtn').onclick=openGoalChooser; document.getElementById('nameBtn').onclick=openNameModal; document.getElementById('img1Btn').onclick=()=>openImageModal(0); document.getElementById('img2Btn').onclick=()=>openImageModal(1); document.getElementById('colorBtn').onclick=openThemeChooser; document.getElementById('layoutBtn').onclick=openLayoutChooser; document.getElementById('resetBtn').onclick=resetAll;
+yearBox.onclick=openYearChooser; monthBox.onclick=openMonthChooser; goalBox.onclick=openGoalChooser; document.getElementById('nameBox').onclick=openNameModal; document.getElementById('imageSlot1').onclick=()=>openImageModal(0); document.getElementById('imageSlot2').onclick=()=>openImageModal(1);
 </script>
 </body>
 </html>
