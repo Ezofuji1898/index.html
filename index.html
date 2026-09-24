@@ -420,29 +420,84 @@ document.getElementById('saveBtn').onclick=async()=>{
   }
 };
 
+function asciiBytes(s){
+  return new TextEncoder().encode(s);
+}
+function concatBytes(parts){
+  const total=parts.reduce((sum,p)=>sum+p.length,0);
+  const out=new Uint8Array(total);
+  let off=0;
+  for(const p of parts){out.set(p,off);off+=p.length;}
+  return out;
+}
+async function makeA4PdfFromCanvas(canvas){
+  // 外部PDFライブラリを使わず、JPEG画像1枚をA4縦1ページのPDFへ直接埋め込む。
+  const jpegBlob=await new Promise((resolve,reject)=>
+    canvas.toBlob(b=>b?resolve(b):reject(new Error('PDF用画像の作成に失敗しました')),'image/jpeg',0.96)
+  );
+  const jpeg=new Uint8Array(await jpegBlob.arrayBuffer());
+
+  // A4 portrait in PDF points (72 pt = 1 inch)
+  const pageW=595.28, pageH=841.89;
+  const margin=22.68; // 8 mm
+  const maxW=pageW-margin*2, maxH=pageH-margin*2;
+  const ratio=canvas.width/canvas.height;
+  let drawW=maxW, drawH=drawW/ratio;
+  if(drawH>maxH){drawH=maxH;drawW=drawH*ratio;}
+  const x=(pageW-drawW)/2;
+  const y=(pageH-drawH)/2;
+
+  const content=`q\n${drawW.toFixed(2)} 0 0 ${drawH.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)} cm\n/Im0 Do\nQ\n`;
+  const contentBytes=asciiBytes(content);
+
+  const objects=[];
+  objects[1]=asciiBytes('<< /Type /Catalog /Pages 2 0 R >>');
+  objects[2]=asciiBytes('<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+  objects[3]=asciiBytes(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW.toFixed(2)} ${pageH.toFixed(2)}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`);
+  objects[4]=concatBytes([
+    asciiBytes(`<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`),
+    jpeg,
+    asciiBytes('\nendstream')
+  ]);
+  objects[5]=concatBytes([
+    asciiBytes(`<< /Length ${contentBytes.length} >>\nstream\n`),
+    contentBytes,
+    asciiBytes('endstream')
+  ]);
+
+  const parts=[];
+  let pos=0;
+  const push=(bytes)=>{parts.push(bytes);pos+=bytes.length;};
+  push(asciiBytes('%PDF-1.4\n%PDFCAL\n'));
+
+  const offsets=[0];
+  for(let i=1;i<=5;i++){
+    offsets[i]=pos;
+    push(asciiBytes(`${i} 0 obj\n`));
+    push(objects[i]);
+    push(asciiBytes('\nendobj\n'));
+  }
+
+  const xrefPos=pos;
+  push(asciiBytes('xref\n0 6\n'));
+  push(asciiBytes('0000000000 65535 f \n'));
+  for(let i=1;i<=5;i++){
+    push(asciiBytes(String(offsets[i]).padStart(10,'0')+' 00000 n \n'));
+  }
+  push(asciiBytes(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF`));
+
+  return new Blob([concatBytes(parts)],{type:'application/pdf'});
+}
+
 document.getElementById('pdfSaveBtn').onclick=async()=>{
   try{
     const cropped=await captureCalendarCanvas();
-    if(!window.jspdf || !window.jspdf.jsPDF){
-      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js');
-    }
-    const {jsPDF}=window.jspdf;
-    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
-    const pageW=210,pageH=297,margin=8;
-    const maxW=pageW-margin*2,maxH=pageH-margin*2;
-    const ratio=cropped.width/cropped.height;
-    let drawW=maxW,drawH=drawW/ratio;
-    if(drawH>maxH){drawH=maxH;drawW=drawH*ratio;}
-    const x=(pageW-drawW)/2;
-    const y=(pageH-drawH)/2;
-    const imgData=cropped.toDataURL('image/jpeg',0.96);
-    pdf.addImage(imgData,'JPEG',x,y,drawW,drawH,undefined,'FAST');
-    const blob=pdf.output('blob');
+    const blob=await makeA4PdfFromCanvas(cropped);
     const filename=baseCalendarName()+'.pdf';
     const pdfUrl=URL.createObjectURL(blob);
     const file=new File([blob],filename,{type:'application/pdf'});
 
-    // PDFそのものはimgタグでプレビューできないため、画面では同じカレンダー画像を表示する。
+    // PDFは画像タグで直接プレビューできないため、同じカレンダー画像を表示する。
     const previewBlob=await new Promise((resolve,reject)=>cropped.toBlob(b=>b?resolve(b):reject(new Error('プレビュー作成に失敗しました')),'image/png'));
     const previewUrl=URL.createObjectURL(previewBlob);
     if(currentSaveUrl) URL.revokeObjectURL(currentSaveUrl);
@@ -452,11 +507,10 @@ document.getElementById('pdfSaveBtn').onclick=async()=>{
     document.getElementById('saveModalTitle').textContent='PDFを ほぞん';
     document.getElementById('saveModalHelp').textContent='A4たてのPDFを作りました。「ほぞん・きょうゆう」を押して、iPadの共有画面から「“ファイル”に保存」を選んでください。';
     document.getElementById('saveModal').classList.add('show');
-    // previewUrl はモーダルを閉じた後に画像要素から外れれば回収される。少し遅らせて解放する。
     setTimeout(()=>URL.revokeObjectURL(previewUrl),60000);
   }catch(e){
     console.error(e);
-    alert('PDFを作成できませんでした。インターネット接続を確認して、もう一度お試しください。');
+    alert('PDFを作成できませんでした。もう一度お試しください。');
   }
 };
 
